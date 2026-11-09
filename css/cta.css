@@ -1,0 +1,190 @@
+/* ==========================================================
+   CTA: full-bleed секция с mesh-градиентом, который медленно
+   перетекает сам в себя. Края секции закруглены соседями:
+   сверху — кремовой «крышкой» .cta__cap (низ предыдущей секции),
+   снизу — скруглённым верхом тёмного футера, заходящего на CTA.
+   В угловых вырезах виден фон CTA, поэтому переход в цвет
+   страницы не нужен вовсе — и швам/полосам взяться неоткуда.
+
+   Mesh = четыре эллиптических radial-gradient поверх базового
+   цвета. Положение и цвет каждого — зарегистрированные @property,
+   поэтому браузер сам плавно интерполирует их между ключевыми
+   кадрами. У каждого пятна свои периоды движения и смены цвета —
+   сочетания не повторяются. Оранжевого почти нет: только тёплый
+   коралловый на краткий момент цикла одного дальнего пятна.
+   ========================================================== */
+:root {
+  /* общая высота крышки/скругления: .cta__cap и .footer — соседи .cta,
+     поэтому переменная живёт на :root */
+  --cta-cap-h: clamp(28px, 3.5vw, 48px);
+}
+
+@property --a-x { syntax: '<percentage>'; inherits: false; initial-value: 14%; }
+@property --a-y { syntax: '<percentage>'; inherits: false; initial-value: 28%; }
+@property --b-x { syntax: '<percentage>'; inherits: false; initial-value: 72%; }
+@property --b-y { syntax: '<percentage>'; inherits: false; initial-value: 18%; }
+@property --c-x { syntax: '<percentage>'; inherits: false; initial-value: 88%; }
+@property --c-y { syntax: '<percentage>'; inherits: false; initial-value: 82%; }
+@property --d-x { syntax: '<percentage>'; inherits: false; initial-value: 28%; }
+@property --d-y { syntax: '<percentage>'; inherits: false; initial-value: 92%; }
+@property --a-c { syntax: '<color>'; inherits: false; initial-value: #4568DC; }
+@property --b-c { syntax: '<color>'; inherits: false; initial-value: #8660DC; }
+@property --c-c { syntax: '<color>'; inherits: false; initial-value: #B9559F; }
+@property --d-c { syntax: '<color>'; inherits: false; initial-value: #3B7FD4; }
+
+.cta {
+  position: relative;
+  z-index: 1; /* ниже .cta__cap, чтобы крышка перекрывала верхний край */
+  /* full-bleed: компенсируем --gutter у <main>. 100vw не годится — он включает
+     ширину полосы прокрутки и даёт горизонтальный скролл */
+  margin-inline: calc(-1 * var(--gutter));
+  /* сверху и снизу запас под наезжающие крышку и футер */
+  padding: calc(clamp(72px, 10vw, 128px) + var(--cta-cap-h)) clamp(24px, 5vw, 48px);
+  text-align: center;
+  background:
+    radial-gradient(ellipse 52% 90% at var(--b-x) var(--b-y), var(--b-c), transparent),
+    radial-gradient(ellipse 46% 80% at var(--c-x) var(--c-y), var(--c-c), transparent),
+    radial-gradient(ellipse 50% 80% at var(--d-x) var(--d-y), var(--d-c), transparent),
+    radial-gradient(ellipse 58% 95% at var(--a-x) var(--a-y), var(--a-c), transparent),
+    #5568D0;
+  animation:
+    cta-a-pos 38s ease-in-out infinite alternate,
+    cta-b-pos 45s ease-in-out infinite alternate,
+    cta-c-pos 41s ease-in-out infinite alternate,
+    cta-d-pos 52s ease-in-out infinite alternate,
+    cta-a-col 31s ease-in-out infinite alternate,
+    cta-b-col 37s ease-in-out infinite alternate,
+    cta-c-col 43s ease-in-out infinite alternate,
+    cta-d-col 49s ease-in-out infinite alternate;
+}
+/* вне экрана перерисовывать фон каждый кадр незачем — cta.js ставит .is-idle */
+.cta.is-idle { animation-play-state: paused; }
+
+@keyframes cta-a-pos {
+  0%   { --a-x: 12%; --a-y: 22%; }
+  50%  { --a-x: 34%; --a-y: 62%; }
+  100% { --a-x: 20%; --a-y: 88%; }
+}
+@keyframes cta-b-pos {
+  0%   { --b-x: 74%; --b-y: 14%; }
+  50%  { --b-x: 52%; --b-y: 44%; }
+  100% { --b-x: 80%; --b-y: 66%; }
+}
+@keyframes cta-c-pos {
+  0%   { --c-x: 90%; --c-y: 86%; }
+  50%  { --c-x: 64%; --c-y: 70%; }
+  100% { --c-x: 92%; --c-y: 40%; }
+}
+@keyframes cta-d-pos {
+  0%   { --d-x: 26%; --d-y: 94%; }
+  50%  { --d-x: 48%; --d-y: 20%; }
+  100% { --d-x: 8%;  --d-y: 50%; }
+}
+
+@keyframes cta-a-col {
+  0%   { --a-c: #4568DC; }
+  50%  { --a-c: #5A55D8; }
+  100% { --a-c: #3B7BD2; }
+}
+@keyframes cta-b-col {
+  0%   { --b-c: #8660DC; }
+  50%  { --b-c: #5F6EE2; }
+  100% { --b-c: #A262D4; }
+}
+/* единственное тёплое пятно: от розового через фиолетовый к приглушённому
+   коралловому — и в этой точке оно в дальнем углу, не под текстом */
+@keyframes cta-c-col {
+  0%   { --c-c: #B9559F; }
+  50%  { --c-c: #8E62DA; }
+  100% { --c-c: #D0646F; }
+}
+@keyframes cta-d-col {
+  0%   { --d-c: #3B7FD4; }
+  50%  { --d-c: #5E62DA; }
+  100% { --d-c: #3A92CE; }
+}
+
+/* «крышка» перехода: кремовая, со скруглённым низом, лежит поверх
+   верхней части CTA — визуально это и есть скруглённый конец
+   предыдущей секции, а не начало CTA */
+.cta__cap {
+  position: relative;
+  z-index: 2;
+  height: var(--cta-cap-h);
+  margin-inline: calc(-1 * var(--gutter));
+  /* +2px: CTA начинается чуть ниже верха крышки, иначе из-за дробной позиции
+     скролла сверху крышки проглядывает 1px градиента */
+  margin-bottom: calc(2px - var(--cta-cap-h)); /* перекрывает верх CTA */
+  background: var(--bg);
+  border-radius: 0 0 var(--cta-cap-h) var(--cta-cap-h);
+}
+
+.cta .eyebrow { position: relative; color: rgba(255, 255, 255, 0.8); }
+.cta__title {
+  position: relative;
+  max-width: 30em;
+  margin: 0 auto 14px;
+  color: var(--white);
+}
+.cta__text {
+  position: relative;
+  max-width: 34em;
+  margin: 0 auto 32px;
+  color: rgba(255, 255, 255, 0.88);
+}
+
+/* кнопка — в белых тонах: читается спокойнее на насыщенном цветном фоне,
+   тёмный кружок со стрелкой внутри белой пилюли */
+.cta__btn {
+  --btn-t: 0.7s cubic-bezier(0.65, 0, 0.25, 1);
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 28px 6px 58px; /* слева место под абсолютную иконку: 6 + 40 + 12 */
+  border-radius: var(--radius-pill);
+  background: var(--white);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 500;
+  transition: background-color var(--btn-t), color var(--btn-t), transform var(--dur) var(--ease-out);
+}
+.cta__btn:hover, .cta__btn:focus-visible { background: var(--ink); color: var(--white); }
+.cta__btn:active { transform: scale(0.97); }
+
+.cta__btn-label {
+  display: block;
+  line-height: 40px;
+  transition: transform var(--btn-t);
+}
+/* на hover иконка уезжает вправо, текст сдвигается на освободившееся место */
+.cta__btn:hover .cta__btn-label, .cta__btn:focus-visible .cta__btn-label { transform: translateX(-30px); }
+
+.cta__btn-icon {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--white);
+  transition: left var(--btn-t), background-color var(--btn-t), color var(--btn-t);
+}
+.cta__btn-icon svg { width: 18px; height: 18px; transition: transform var(--btn-t); }
+.cta__btn:hover .cta__btn-icon, .cta__btn:focus-visible .cta__btn-icon { left: calc(100% - 46px); background: var(--white); color: var(--ink); }
+.cta__btn:hover .cta__btn-icon svg, .cta__btn:focus-visible .cta__btn-icon svg { transform: rotate(180deg); }
+
+.cta__note {
+  position: relative;
+  margin-top: 16px;
+  font-size: var(--fs-small);
+  color: rgba(255, 255, 255, 0.78);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cta { animation: none; }
+}

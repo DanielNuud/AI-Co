@@ -1,0 +1,138 @@
+/* ==========================================================
+   HOW: «How it works» — белая панель на мягком цветном пятне,
+   шаги как иконка + заголовок + текст, соединённые линией.
+   ========================================================== */
+.how {
+  position: relative;
+  max-width: var(--page-max);
+  margin-inline: auto;
+  padding-block: var(--section-gap);
+}
+
+/* мягкое цветное пятно позади панели — тот же mesh-градиент + блюр,
+   что и в .svc-stage, но бледнее и видно только по краям панели */
+.how__halo {
+  position: absolute;
+  /* выступ не больше --gutter у <main>, иначе пятно даёт горизонтальный скролл */
+  inset: clamp(-32px, -6vw, -24px);
+  z-index: 0;
+  border-radius: clamp(32px, 4vw, 56px);
+  background:
+    radial-gradient(circle at 15% 20%, rgba(108, 143, 224, 0.35) 0, transparent 42%),
+    radial-gradient(circle at 85% 15%, rgba(225, 103, 60, 0.28) 0, transparent 40%),
+    radial-gradient(circle at 80% 85%, rgba(155, 123, 224, 0.32) 0, transparent 44%),
+    radial-gradient(circle at 20% 85%, rgba(184, 92, 56, 0.22) 0, transparent 42%);
+  filter: blur(clamp(30px, 4vw, 54px));
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+.how__panel {
+  position: relative;
+  z-index: 1;
+  background: var(--white);
+  border-radius: clamp(28px, 3.5vw, 48px);
+  /* тот же ободок + тень, что у «окон» в секции сервисов (.chat, .ask__bar) —
+     белая обводка без размытия поверх мягкого пятна, снизу мягкая тень */
+  box-shadow:
+    0 0 0 clamp(20px, 1vw, 7px) rgba(255, 255, 255, 0.6);
+  padding-block: clamp(48px, 6vw, 80px);
+}
+
+.how__head {
+  max-width: 640px;
+  margin-inline: auto;
+  text-align: center;
+}
+
+.how__badge { margin-bottom: 16px; }
+.how__title { margin-bottom: 16px; }
+.how__text { color: var(--ink-muted); }
+
+/* --- шаги --- */
+.how__steps {
+  position: relative;
+  margin-top: clamp(48px, 6vw, 72px);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+}
+
+/* линия между иконками: не плоская заливка-прогрессбар (выглядела как лоадер),
+   а точечная дорожка + один светящийся акцент, который курсирует туда-сюда —
+   тот же мотив «один движущийся элемент на пути», что у труб в hero и у
+   бегущей подсветки в секции технологий */
+.how__line {
+  position: absolute;
+  left: calc(100% / 6);
+  right: calc(100% / 6);
+  top: clamp(24px, 3vw, 28px); /* = половина высоты .step__icon */
+  height: 6px;
+  transform: translateY(-50%);
+  z-index: 0;
+  background-image: radial-gradient(circle, var(--line) 1.5px, transparent 1.5px);
+  background-size: 10px 6px;
+  background-repeat: repeat-x;
+  background-position: center;
+  opacity: 0;
+}
+.how__dot {
+  position: absolute;
+  top: 50%; left: 0;
+  width: 9px; height: 9px;
+  margin-top: -4.5px; margin-left: -4.5px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 5px rgba(184, 92, 56, 0.16), 0 0 14px 2px rgba(184, 92, 56, 0.4);
+}
+
+.step {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.step__icon {
+  display: grid;
+  place-items: center;
+  width: clamp(48px, 5.6vw, 56px);
+  height: clamp(48px, 5.6vw, 56px);
+  margin-bottom: 20px;
+  border-radius: clamp(14px, 1.8vw, 18px);
+  box-shadow: 0 12px 24px -10px rgba(43, 32, 27, 0.35);
+}
+.step__icon svg { width: 46%; height: 46%; }
+
+.step__title {
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 1.25rem;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  margin-bottom: 10px;
+}
+
+.step__text {
+  color: var(--ink-muted);
+  font-size: 0.9375rem;
+  max-width: 30em;
+}
+
+.how__note {
+  margin-top: clamp(32px, 4vw, 48px);
+  text-align: center;
+  font-size: var(--fs-small);
+  color: var(--ink-muted);
+}
+
+/* ==========================================================
+   RESPONSIVE
+   ========================================================== */
+@media (max-width: 860px) {
+  .how__steps { grid-template-columns: 1fr; gap: 40px; }
+  /* вертикальная раскладка — линия между иконками теряет смысл (шаги не в один ряд) */
+  .how__line { display: none; }
+}

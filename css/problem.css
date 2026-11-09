@@ -1,0 +1,45 @@
+.problem {
+  position: relative;
+  overflow: hidden; /* карточки падают из-под текста и не должны вылезать за карту */
+  min-height: 100svh;
+  padding-block: clamp(48px, 7vw, 96px) clamp(32px, 5vw, 64px);
+}
+
+.problem__inner {
+  position: relative;
+  z-index: 1; /* текст поверх падающих карточек */
+}
+
+.problem__head {
+  max-width: 750px;
+  margin-inline: auto;
+  text-align: center;
+}
+
+.problem__title { margin-bottom: 20px; }
+
+.problem__text { color: var(--ink-muted); }
+
+/* --- сцена с падающими карточками (Matter.js), во всю секцию --- */
+.problem__stage {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.card-chip {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  will-change: transform;
+  pointer-events: none;
+  user-select: none;
+}
+.card-chip svg { display: block; width: 100%; height: 100%; overflow: visible; }
+
+@media (max-width: 640px) {
+  .problem { min-height: 100svh; }
+}

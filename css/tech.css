@@ -1,0 +1,144 @@
+/* ==========================================================
+   TECH: «Built with proven technologies» — цепочка плиток с логотипами
+   (стиль референса Calendly). Два ряда: верхний на плитку короче нижнего,
+   оба по центру — поэтому ряды сами встают со сдвигом на полплитки.
+
+   Плитка — два слоя, потому что фильтр «липкой капли» размыл бы и иконки:
+   1) .tech__chain  — только фон (плитки + перемычки), тут висит SVG-фильтр,
+                      который склеивает их в цепочку с вогнутыми стыками
+   2) .tech__tiles  — иконки поверх, строго по той же сетке
+   ========================================================== */
+.tech {
+  --t: clamp(52px, 7vw, 96px);        /* сторона плитки */
+  --g: calc(var(--t) * 0.22);         /* зазор между плитками */
+  --tile: #F1ECE4;                    /* фон плитки */
+  --tile-lit: #F8DDD0;                /* «подсвеченная» плитка: мягкий тон акцента */
+
+  position: relative;
+  max-width: var(--page-max);
+  margin-inline: auto;
+  padding-block: var(--section-gap, clamp(64px, 8vw, 120px));
+  text-align: center;
+  overflow-x: clip;                   /* плитки въезжают сбоку — без горизонтального скролла страницы */
+}
+
+/* --- текст --- */
+.tech__content {
+  max-width: 640px;
+  margin-inline: auto;
+}
+.tech__title { margin-bottom: 20px; }
+.tech__text { color: var(--ink-muted); }
+
+/* --- сетка --- */
+.tech__grid {
+  margin-top: clamp(40px, 5vw, 64px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--g);
+}
+.tech__row {
+  position: relative;
+  width: max-content;
+}
+
+/* слой фона: плитки и перемычки в один ряд, суммарная ширина = ширине ряда иконок */
+.tech__chain {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  filter: url(#tech-goo);
+  pointer-events: none;
+}
+.tech__blob {
+  flex: none;
+  width: var(--t);
+  height: var(--t);
+  border-radius: calc(var(--t) * 0.30);
+  background: var(--tile);
+  transition: background-color 0.4s var(--ease-out);
+}
+/* перемычка-«капсула»: заходит на плитки с обеих сторон (отрицательные margin) — размер ряда не меняется */
+.tech__link {
+  flex: none;
+  width: calc(var(--g) + var(--t) * 0.12);
+  height: calc(var(--t) * 0.28);
+  margin-inline: calc(var(--t) * -0.06);
+  border-radius: 999px;
+  background: var(--tile);
+}
+.tech__blob.is-lit { background: var(--tile-lit); }
+
+/* слой иконок */
+.tech__tiles {
+  position: relative;
+  display: flex;
+  gap: var(--g);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.tech__tile {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: var(--t);
+  height: var(--t);
+}
+.tech__tile img {
+  width: 52%;
+  height: 52%;
+  object-fit: contain;
+  transition: transform 0.35s var(--ease-out);
+}
+.tech__tile:hover img,
+.tech__tile.is-lit img { transform: scale(1.14); }
+
+/* подпись с названием — по наведению (иконки без подписи не всегда узнаваемы) */
+.tech__tile::after {
+  content: attr(data-name);
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 6px);
+  padding: 5px 11px;
+  border-radius: var(--radius-pill);
+  background: var(--ink);
+  color: var(--white);
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.2;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translate(-50%, 4px);
+  pointer-events: none;
+  transition: opacity 0.25s var(--ease-out), transform 0.25s var(--ease-out);
+  z-index: 2;
+}
+@media (hover: hover) {
+  .tech__tile:hover::after { opacity: 1; transform: translate(-50%, 0); }
+}
+
+.tech__defs { position: absolute; width: 0; height: 0; overflow: hidden; }
+
+/* ==========================================================
+   RESPONSIVE
+   ========================================================== */
+/* плитки мельче ~72px — фильтр слабее, иначе зазор между ними «зарастает» */
+@media (max-width: 1030px) {
+  .tech__chain { filter: url(#tech-goo-s); }
+}
+
+/* телефоны: цепочка не влезает в одну строку, а склейка при переносе рядов теряет смысл —
+   убираем фоновый слой, каждой плитке даём собственный фон, плитки переносятся по строкам */
+@media (max-width: 600px) {
+  .tech { --t: 60px; --g: 12px; }
+  .tech__chain { display: none; }
+  .tech__grid { gap: var(--g); }
+  .tech__row { width: auto; }
+  .tech__tiles { flex-wrap: wrap; justify-content: center; }
+  .tech__tile { background: var(--tile); border-radius: 18px; transition: background-color 0.4s var(--ease-out); }
+  .tech__tile.is-lit { background: var(--tile-lit); }
+}

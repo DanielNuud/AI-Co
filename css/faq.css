@@ -1,0 +1,96 @@
+.faq {
+  /* без острова: сами задаём ширину/центровку так же, как .how */
+  max-width: var(--page-max);
+  margin-inline: auto;
+  padding-block: var(--section-gap);
+}
+
+.faq__inner {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1fr);
+  gap: clamp(32px, 6vw, 96px);
+  align-items: start;
+}
+
+.faq__content { padding-top: clamp(4px, 1vw, 16px); }
+.faq__title { margin-bottom: 20px; }
+.faq__text { color: var(--ink-muted); margin-bottom: 28px; max-width: 32em; }
+
+/* --- аккордеон --- */
+.faq__list-wrap { position: relative; }
+
+/* фоновая карточка за аккордеоном: градиент, постепенно исчезающий к низу */
+.faq__glow {
+  position: absolute;
+  inset: -28px -20px -96px;
+  z-index: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.4) 55%, rgba(255, 255, 255, 0) 100%);
+  border-radius: 32px;
+  pointer-events: none;
+}
+
+.faq__list {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.faq__item {
+  background: var(--white);
+  border-radius: 16px;
+  box-shadow: 0 1px 2px rgba(43, 32, 27, 0.05);
+  transition: box-shadow 0.4s var(--ease-out);
+}
+/* состояние «открыт» ведёт faq.js (.is-open), а не [open]: [open] снимается только в конце анимации закрытия */
+.faq__item.is-open { box-shadow: 0 8px 24px rgba(43, 32, 27, 0.08); }
+
+.faq__q {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 20px;
+  cursor: pointer;
+  list-style: none;
+  font-weight: 600;
+}
+.faq__q::-webkit-details-marker { display: none; }
+
+.faq__icon {
+  display: grid; place-items: center;
+  flex-shrink: 0;
+  width: 20px; height: 20px;
+  color: var(--ink);
+  transition: color 0.4s var(--ease-out);
+}
+.faq__item.is-open .faq__icon { color: var(--accent); }
+.faq__icon svg { width: 20px; height: 20px; }
+
+.faq__q-text { flex: 1; }
+
+.faq__chevron {
+  flex-shrink: 0;
+  width: 16px; height: 16px;
+  color: var(--ink-muted);
+  transition: transform 0.45s var(--ease-out);
+}
+.faq__item.is-open .faq__chevron { transform: rotate(180deg); }
+
+.faq__a {
+  padding: 0 20px 20px calc(20px + 20px + 12px);
+  color: var(--ink-muted);
+  font-size: 15px;
+}
+
+/* ==========================================================
+   RESPONSIVE
+   ========================================================== */
+@media (max-width: 860px) {
+  .faq__inner { grid-template-columns: 1fr; }
+  .faq__glow { inset: -20px -12px -60px; }
+}
+
+@media (max-width: 480px) {
+  .faq__a { padding-left: 20px; }
+}

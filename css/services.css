@@ -1,0 +1,1024 @@
+/* ==========================================================
+   SERVICES: «How we buy your time back»
+   Блок = список пунктов слева + композиция справа.
+   ========================================================== */
+
+/* без острова, как .how: ширину и центровку задаём сами,
+   боковые отступы даёт .container (--pad) — край совпадает с логотипом в шапке */
+.svc {
+  max-width: var(--page-max);
+  margin-inline: auto;
+  padding-block: clamp(48px, 7vw, 96px);
+}
+
+.svc__head {
+  max-width: 640px;
+  margin: 0 auto clamp(56px, 7vw, 96px);
+  text-align: center;
+}
+.svc__head h2 { margin-bottom: 16px; }
+.svc__head p { color: var(--ink-muted); }
+
+/* ---------------- блок ---------------- */
+.svc-block {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1fr);
+  gap: clamp(40px, 7vw, 110px);
+  align-items: center;
+}
+
+.svc-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 0.8125rem; font-weight: 500; line-height: 1;
+}
+.svc-badge__icon {
+  display: grid; place-items: center;
+  width: 20px; height: 20px;
+  border-radius: 6px;
+  background: var(--accent);
+  color: var(--white);
+}
+.svc-badge__icon svg { width: 12px; height: 12px; }
+
+.svc-block__title {
+  margin: 14px 0 clamp(24px, 3vw, 36px);
+  font-size: clamp(2rem, 1.4rem + 2vw, 2.75rem);
+  line-height: 1.1;
+  font-weight: 700;
+}
+
+/* ---------------- список пунктов ---------------- */
+.svc-list { border-top: 1px solid var(--line); }
+.svc-list li { border-bottom: 1px solid var(--line); }
+
+.svc-item {
+  display: grid;
+  grid-template-columns: 22px 1fr;
+  column-gap: 10px; row-gap: 6px;
+  width: 100%;
+  padding: clamp(20px, 2.4vw, 28px) 0;
+  text-align: left;
+  opacity: 0.35;
+  transition: opacity 0.4s var(--ease-out);
+}
+.svc-item { position: relative; }
+.svc-item:not(:disabled):hover { opacity: 0.7; }
+
+/* полоска прогресса под активным пунктом: лежит поверх разделителя li.
+   В блоке 1 её ведёт прокрутка, в блоках 2-4 — сама сцена (таймлайн одного круга) */
+.svc-item__bar {
+  position: absolute; left: 0; right: 0; bottom: -1px;
+  height: 2px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.svc-item.is-active .svc-item__bar { opacity: 1; }
+.svc-item__bar i { display: block; height: 100%; width: 0; background: var(--svc-bar, var(--accent)); border-radius: 2px; }
+.svc-item.is-active { opacity: 1; }
+.svc-item:disabled { cursor: default; }
+
+.svc-item__icon { display: grid; place-items: center; align-self: center; color: var(--ink); }
+.svc-item__icon svg { width: 20px; height: 20px; }
+
+.svc-item__title {
+  align-self: center;
+  font-family: var(--font-head);
+  font-size: 20px; font-weight: 500;
+  line-height: 1.2;
+}
+.svc-item__text {
+  grid-column: 2;
+  max-width: 34em;
+  font-size: 15px; line-height: 1.55;
+  color: var(--ink-muted);
+}
+
+/* аккордеон (блоки 2-4): подзаголовок виден только у активного пункта */
+.svc-list--acc { border-top: 0; }
+.svc-list--acc .svc-item { row-gap: 0; }
+.svc-list--acc .svc-item__text {
+  max-height: 0;
+  margin-top: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-height 0.5s var(--ease-out), margin-top 0.5s var(--ease-out), opacity 0.35s;
+}
+.svc-list--acc .svc-item.is-active .svc-item__text {
+  max-height: 9em;
+  margin-top: 8px;
+  opacity: 1;
+  transition-delay: 0s, 0s, 0.1s;
+}
+
+/* полоса прогресса — цветами mesh-градиента прилегающей сцены (см. .svc-stage--* ниже) */
+.svc-block--data  { --svc-bar: linear-gradient(90deg, #6FA8F0, #8C7FE0, #B79AE8); }
+.svc-block--auto  { --svc-bar: linear-gradient(90deg, #6C4FE0, #8F6CE0, #C08CE8); }
+.svc-block--audit { --svc-bar: linear-gradient(90deg, #A9791C, #E0A62E, #F0C464); }
+
+/* ---------------- композиция ---------------- */
+.svc-stage {
+  position: relative;
+  width: 100%;
+  max-width: 78svh;      /* закреплённый блок должен помещаться в экран по высоте */
+  justify-self: center;
+  isolation: isolate;
+  overflow: hidden;
+  container-type: inline-size; /* размеры карточки внутри считаются от ширины сцены */
+  aspect-ratio: 1 / 1;
+  display: grid; place-items: center;
+  border-radius: clamp(28px, 3.4vw, 44px);
+  background: #FF7E5F;
+}
+
+/* градиент медленно вращается — сцена не стоит мёртвой в паузах */
+.svc-stage::before {
+  content: '';
+  position: absolute; inset: -35%;
+  z-index: -2;
+  background:
+    radial-gradient(circle at 78% 18%, #FF5E8E 0, transparent 38%),
+    radial-gradient(circle at 20% 82%, #FFB463 0, transparent 40%),
+    radial-gradient(circle at 82% 80%, #FF4B2B 0, transparent 36%),
+    radial-gradient(circle at 25% 25%, #FF946A 0, transparent 45%),
+    #FF7E5F;
+  animation: svc-drift 36s linear infinite;
+}
+@keyframes svc-drift { to { transform: rotate(360deg); } }
+
+/* полупрозрачные «клавиши» за карточкой */
+/* плавающие «клавиши» на фоне медленно и бесшовно едут вправо:
+   вся последовательность продублирована (11 + те же 11 ещё раз),
+   лента едет от -50% к 0%, и стык между копиями не заметен,
+   потому что gap между ними точно такой же, как между пилюлями внутри копии */
+.svc-stage__pills {
+  position: absolute; left: 0; right: 0; top: 50%;
+  height: 32%;
+  transform: translateY(-50%);
+  z-index: -1;
+  display: flex; justify-content: flex-start; gap: 3cqw;
+  width: max-content;
+  animation: svc-pills-drift 26s linear infinite;
+}
+@keyframes svc-pills-drift {
+  from { transform: translateY(-50%) translateX(-50%); }
+  to   { transform: translateY(-50%) translateX(0%); }
+}
+/* второй подблок («Resolves 80% instantly») — та же лента, но в обратную
+   сторону: переключаем через animation-direction, а не второй keyframe,
+   чтобы луп остался таким же бесшовным. stage.dataset.active выставляет JS
+   при переключении пункта списка (см. activate() в services.js). */
+.svc-stage[data-active="instant"] .svc-stage__pills,
+.svc-stage[data-active="cited"] .svc-stage__pills,
+.svc-stage[data-active="trigger"] .svc-stage__pills,
+.svc-stage[data-active="ranked"] .svc-stage__pills {
+  animation-direction: reverse;
+}
+.svc-stage__pills span {
+  flex: none;
+  width: 11cqw;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* ---------------- переключаемые сцены ---------------- */
+/* Три сцены лежат друг на друге внутри .svc-stage; видимость
+   переключается классом, а не display, чтобы был плавный кросс-фейд. */
+.svc-scene {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; visibility: hidden;
+  transition: opacity 0.4s var(--ease-out), visibility 0s 0.4s;
+}
+.svc-scene.is-visible { opacity: 1; visibility: visible; transition: opacity 0.4s var(--ease-out); }
+
+/* ---------------- карточка чата ---------------- */
+.chat {
+  width: 65%;
+  background: var(--white);
+  border-radius: clamp(16px, 5cqw, 26px);
+  box-shadow:
+    0 0 0 clamp(4px, 1.4cqw, 7px) rgba(255, 255, 255, 0.35),
+    0 24px 48px -18px rgba(140, 40, 20, 0.4);
+  overflow: hidden;
+  font-family: var(--font-head);
+  color: #111;
+}
+.chat [hidden] { display: none !important; }
+
+.chat__inner {
+  display: flex; flex-direction: column;
+  gap: clamp(12px, 3.6cqw, 18px);
+  padding: clamp(18px, 5.4cqw, 28px);
+}
+
+.chat__head { display: flex; align-items: center; gap: clamp(10px, 3cqw, 14px); }
+
+.chat__avatar {
+  flex: none;
+  display: grid; place-items: center;
+  width: clamp(38px, 11cqw, 52px); aspect-ratio: 1;
+  border-radius: 30%;
+  object-fit: cover;
+  background: linear-gradient(135deg, #F5B592, #D9785A);
+  color: var(--white);
+  font-size: clamp(13px, 3.4cqw, 16px); font-weight: 600;
+}
+.chat__avatar--photo {
+  object-fit: cover;
+  background: none;
+}
+.chat__avatar--bot { background: #FFE4D6; color: var(--accent); }
+.chat__avatar--bot svg { width: 58%; height: 58%; }
+
+.chat__meta { display: flex; flex-direction: column; min-width: 0; }
+.chat__name { font-size: clamp(17px, 4.6cqw, 22px); font-weight: 600; line-height: 1.2; }
+.chat__sub { font-size: clamp(11px, 2.8cqw, 13px); color: #8B8580; line-height: 1.4; }
+.chat__caret { font-style: normal; font-size: 1.25em; line-height: 1; margin-left: 3px; vertical-align: -0.08em; }
+
+.chat__text { margin: 0; font-size: clamp(14px, 3.7cqw, 17px); line-height: 1.5; }
+
+.chat__divider { margin: 2px 0; border: 0; height: 1px; background: #ECE6E0; }
+
+.chat__btn {
+  display: flex; align-items: center; justify-content: center;
+  height: clamp(40px, 10.5cqw, 50px);
+  border-radius: clamp(10px, 2.8cqw, 14px);
+  background: linear-gradient(90deg, #FF9A62, #FF6A4D);
+  color: var(--white);
+  font-size: clamp(14px, 3.6cqw, 16px); font-weight: 600;
+}
+
+/* индикатор «ассистент печатает» */
+.chat__typing { display: flex; gap: 5px; padding: 2px 0; }
+.chat__typing i {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: #CFC7BF;
+  animation: chat-typing 1s ease-in-out infinite;
+}
+.chat__typing i:nth-child(2) { animation-delay: 0.15s; }
+.chat__typing i:nth-child(3) { animation-delay: 0.3s; }
+@keyframes chat-typing {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+  30% { transform: translateY(-4px); opacity: 1; }
+}
+
+/* ==========================================================
+   Сцена 2 — Resolves 80% instantly: три независимые пилюли-тикета
+   (не общая карточка), слегка разбросанные по X, как в макете
+   с падающими карточками — «сообщения приходят из разных мест».
+   ========================================================== */
+.tickets {
+  width: 86%;
+  display: flex; flex-direction: column;
+  gap: clamp(10px, 3.4cqw, 16px);
+}
+
+.ticket {
+  display: flex; align-items: center;
+  gap: clamp(10px, 3cqw, 14px);
+  padding: clamp(10px, 3.2cqw, 15px) clamp(14px, 4cqw, 20px);
+  background: var(--white);
+  border-radius: clamp(16px, 5cqw, 22px);
+  /* тот же белый ободок, что у карточки чата в 1-м подблоке — держит
+     единый стиль карточек по всем сценам блока */
+  box-shadow:
+    0 0 0 clamp(3px, 1cqw, 5px) rgba(255, 255, 255, 0.35),
+    0 14px 28px -12px rgba(0, 0, 0, 0.28);
+  font-family: var(--font-head);
+  color: #111;
+}
+/* лёгкий разброс по горизонтали и наклон — карточки как будто
+   только что «легли», а не выровнены по линейке */
+.ticket:nth-child(1) { align-self: flex-start; margin-left: 0; }
+.ticket:nth-child(2) { align-self: flex-end; }
+.ticket:nth-child(3) { align-self: flex-start; margin-left: clamp(6px, 2cqw, 12px); }
+
+.ticket__channel {
+  flex: none;
+  display: grid; place-items: center;
+  width: clamp(30px, 8.6cqw, 36px); aspect-ratio: 1;
+  border-radius: 50%;
+}
+.ticket__channel svg { width: 56%; height: 56%; }
+
+.ticket__body {
+  flex: 1; min-width: 0;
+  display: flex; flex-direction: column;
+  gap: clamp(3px, 1cqw, 5px);
+}
+
+.ticket__meta { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+
+/* бейдж времени сообщения — тёмный ночью, тёплый днём, чтобы буквально
+   показать «day or night» из текста пункта, а не только словами */
+.ticket__clock {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: clamp(9.5px, 2.3cqw, 10.5px); font-weight: 500;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+.ticket__clock-icon { width: 9px; height: 9px; flex: none; }
+/* период задаётся через data-period в JS; по умолчанию (до заполнения) — день */
+.ticket__clock[data-period="night"] { background: #1E2A44; color: #F4E7C9; }
+.ticket__clock[data-period="night"] [data-icon="sun"] { display: none; }
+.ticket__clock:not([data-period="night"]) { background: #FFE1B0; color: #7A4B12; }
+.ticket__clock:not([data-period="night"]) [data-icon="moon"] { display: none; }
+
+.ticket__duration {
+  flex: none;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: clamp(10px, 2.4cqw, 11px);
+  color: #B0A99F;
+}
+
+.ticket__text {
+  font-size: clamp(12.5px, 3.2cqw, 14px); font-weight: 500;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.ticket__check {
+  flex: none;
+  display: grid; place-items: center;
+  width: clamp(18px, 5cqw, 22px); aspect-ratio: 1;
+  border-radius: 50%;
+  background: #3FA34D;
+  transform: scale(0); opacity: 0;
+}
+.ticket__check svg { width: 62%; height: 62%; }
+
+/* ==========================================================
+   Сцена 3 — Smooth handoff: вторая growing-карточка (тот же
+   .chat, что в сцене 1). Отличие от сцены 1: между вопросом
+   и ответом бот «выцепляет» из текста два тега — они остаются
+   на карточке и до конца, и видно, что именно эти детали
+   доехали до живого агента вместе с вопросом.
+   ========================================================== */
+.chat__tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: -6px; }
+.chat__tag {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #F3EBE0;
+  color: #6F625A;
+  font-family: var(--font-body);
+  font-size: clamp(10.5px, 2.6cqw, 11.5px); font-weight: 500;
+}
+
+/* статус эскалации — тот же тон, что бейдж «Escalating…» раньше */
+.chat__status {
+  margin: 0;
+  font-family: var(--font-head);
+  font-size: clamp(12px, 3cqw, 13.5px); font-weight: 600;
+  color: #B8790E;
+}
+
+.chat__avatar--human {
+  background: linear-gradient(135deg, #3A4A7A, #24304F);
+  color: #fff;
+}
+
+/* ---- окно B: то же дело глазами агента ---- */
+/* хватает toggle через hidden — обе карточки лежат в одном flex-контейнере
+   .svc-scene, который их центрирует; когда одна показана, вторая скрыта */
+
+.chat__case-label {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: clamp(10.5px, 2.6cqw, 11.5px); font-weight: 500;
+  color: var(--ink-muted);
+}
+
+/* пересказ вопроса клиента — приглушённый «цитатный» блок,
+   визуально отличается от новых сообщений (a-шаги), чтобы читалось
+   как переданная справка, а не как только что написанное сообщение */
+.chat__quote {
+  display: flex; align-items: flex-start;
+  gap: clamp(8px, 2.6cqw, 12px);
+  padding: clamp(10px, 3cqw, 14px);
+  background: #F3EBE0;
+  border-radius: clamp(10px, 3cqw, 14px);
+}
+.chat__avatar--sm { width: clamp(26px, 7.4cqw, 32px); font-size: clamp(10px, 2.6cqw, 11.5px); }
+.chat__quote-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.chat__name--sm { font-size: clamp(11.5px, 3cqw, 13px); font-weight: 600; }
+.chat__quote-text { font-size: clamp(11.5px, 2.9cqw, 13px); line-height: 1.45; color: #6F625A; }
+
+/* отступ между блоками — снизу, а не через «.svc-block + .svc-block»: 1-й блок
+   закрепляется при прокрутке (pin) и оборачивается в служебный контейнер, из-за чего
+   соседний селектор перестал бы срабатывать */
+.svc-block { margin-bottom: clamp(72px, 9vw, 120px); }
+.svc-block:last-of-type { margin-bottom: 0; }
+
+/* чередование: блоки с классом .svc-block--flip (2-й и 4-й) — текст справа,
+   композиция слева. Класс, а не nth-of-type: 1-й блок оборачивается в pin-контейнер,
+   и порядок соседей меняется. Свапаем только визуально (order). */
+.svc-block--flip .svc-block__info { order: 2; }
+.svc-block--flip .svc-stage { order: 1; }
+
+/* блоки 2-4: бейдж с заголовком — на уровне верха композиции, аккордеон
+   прижат к её низу (колонка текста растягивается на высоту сцены) */
+@media (min-width: 901px) {
+  .svc-block--data, .svc-block--auto, .svc-block--audit { align-items: stretch; }
+  /* колонка сцены чуть шире колонки текста */
+  .svc-block--flip { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); }
+  .svc-block--auto { grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); }
+  .svc-block--data .svc-stage, .svc-block--auto .svc-stage, .svc-block--audit .svc-stage {
+    align-self: start;
+    max-width: none;
+    aspect-ratio: auto;
+    height: clamp(460px, 54svh, 480px); /* невысокая — меньше зазор между заголовком и аккордеоном; по ширине занимает колонку */
+  }
+  /* сцена прижата к внешнему краю блока, а не центрируется в своей колонке */
+  .svc-block--flip .svc-stage { justify-self: start; }
+  .svc-block--auto .svc-stage { justify-self: end; }
+  .svc-block--data .svc-block__info,
+  .svc-block--auto .svc-block__info,
+  .svc-block--audit .svc-block__info { display: flex; flex-direction: column; }
+  .svc-block--data .svc-badge,
+  .svc-block--auto .svc-badge,
+  .svc-block--audit .svc-badge { align-self: flex-start; }
+  .svc-block--data .svc-list,
+  .svc-block--auto .svc-list,
+  .svc-block--audit .svc-list { margin-top: auto; }
+}
+
+/* сцена-заглушка: тот же вращающийся градиент, что и в первом блоке,
+   просто другой оттенок на блок и крупный полупрозрачный глиф по центру */
+.svc-stage__glyph { width: 44%; height: 44%; opacity: 0.9; }
+
+.svc-stage--data { background: #7C93E0; }
+.svc-stage--data::before {
+  background:
+    radial-gradient(circle at 82% 15%, #6FA8F0 0, transparent 40%),
+    radial-gradient(circle at 15% 30%, #B79AE8 0, transparent 42%),
+    radial-gradient(circle at 20% 85%, #F3B78C 0, transparent 42%),
+    radial-gradient(circle at 70% 70%, #8C7FE0 0, transparent 45%),
+    #7C93E0;
+}
+
+.svc-stage--auto { background: #7A5CD6; }
+.svc-stage--auto::before {
+  background:
+    radial-gradient(circle at 78% 18%, #C08CE8 0, transparent 38%),
+    radial-gradient(circle at 20% 82%, #6C4FE0 0, transparent 40%),
+    radial-gradient(circle at 82% 80%, #4A2FAE 0, transparent 36%),
+    radial-gradient(circle at 25% 25%, #8F6CE0 0, transparent 45%),
+    #7A5CD6;
+}
+
+.svc-stage--audit { background: #C99A2E; }
+.svc-stage--audit::before {
+  background:
+    radial-gradient(circle at 78% 18%, #F0C464 0, transparent 38%),
+    radial-gradient(circle at 20% 82%, #E0A62E 0, transparent 40%),
+    radial-gradient(circle at 82% 80%, #A9791C 0, transparent 36%),
+    radial-gradient(circle at 25% 25%, #E8B84C 0, transparent 45%),
+    #C99A2E;
+}
+
+/* ==========================================================
+   Блок 4 — The Workflow Audit: три сцены по пунктам списка.
+   1) usage  — тепловая карта активности команды
+   2) ranked — полоски растут, затем строки сами сортируются
+   3) plan   — план автоматизации из трёх шагов и итог экономии
+   Данные всех трёх сцен общие (одна «история» на круг), поэтому
+   проблемный процесс в карте, рейтинге и плане — один и тот же.
+   ========================================================== */
+.hm, .rk, .pl, .wf, .tg, .lg {
+  position: relative; z-index: 1;
+  width: 84%;
+  background: var(--white);
+  border-radius: clamp(16px, 4.6cqw, 22px);
+  box-shadow:
+    0 0 0 clamp(3px, 1cqw, 5px) rgba(255, 255, 255, 0.35),
+    0 20px 40px -16px rgba(20, 30, 70, 0.32);
+  padding: clamp(14px, 4cqw, 20px);
+}
+
+/* ---- сцена 1: тепловая карта ---- */
+.hm__head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: clamp(8px, 2.4cqw, 11px); }
+.hm__title { font-family: var(--font-head); font-size: clamp(12.5px, 3.2cqw, 14px); font-weight: 600; color: #111; }
+.hm__sub { font-family: var(--font-body); font-weight: 400; font-size: clamp(11px, 2.7cqw, 12px); color: var(--ink-muted); }
+.hm__count { font-family: 'JetBrains Mono', monospace; font-size: clamp(10px, 2.5cqw, 11px); color: #8B8C9A; white-space: nowrap; }
+
+.hm__prog { height: 4px; border-radius: 999px; background: #ECE6E0; overflow: hidden; margin-bottom: clamp(10px, 3cqw, 14px); }
+.hm__prog span { display: block; height: 100%; width: 0%; border-radius: 999px; background: var(--accent); }
+
+.hm__grid { display: grid; grid-template-columns: auto repeat(7, minmax(0, 1fr)); gap: clamp(3px, 1cqw, 5px); align-items: center; }
+.hm__day { text-align: center; font-family: var(--font-head); font-size: clamp(9px, 2.2cqw, 10px); font-weight: 500; color: #9A938C; }
+.hm__label {
+  padding-right: clamp(6px, 2cqw, 9px);
+  font-family: var(--font-head); font-size: clamp(9.5px, 2.3cqw, 10.5px); font-weight: 500;
+  color: var(--ink-muted); white-space: nowrap;
+  transition: color 0.3s;
+}
+.hm__label.is-hot { color: var(--accent); font-weight: 600; }
+
+/* насыщенность клетки = уровень активности; «горячая» строка перекрашивается в акцент */
+.hm__cell { height: clamp(14px, 4cqw, 19px); border-radius: clamp(3px, 1cqw, 5px); background: #F1EBE4; transition: background-color 0.4s; }
+.hm__cell[data-level="1"] { background: #EADFD2; }
+.hm__cell[data-level="2"] { background: #DCC9B3; }
+.hm__cell[data-level="3"] { background: #CCB293; }
+.hm__cell[data-level="4"] { background: #B9946C; }
+.hm__cell.is-hot[data-level="1"] { background: #F5DACB; }
+.hm__cell.is-hot[data-level="2"] { background: #EDBAA2; }
+.hm__cell.is-hot[data-level="3"] { background: #DF9270; }
+.hm__cell.is-hot[data-level="4"] { background: #B85C38; }
+
+.hm__chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: clamp(10px, 3cqw, 14px); }
+.hm__chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 3px 9px;
+  border-radius: 999px; background: #F6F1EA; color: #4A4038;
+  font-family: var(--font-body); font-size: clamp(9.5px, 2.3cqw, 10.5px); font-weight: 500;
+}
+.hm__chip i { width: 6px; height: 6px; border-radius: 50%; background: #E1673C; }
+.hm__chip:nth-child(2) i { background: #3E7BD6; }
+.hm__chip:nth-child(3) i { background: #1E9E5A; }
+.hm__chip:nth-child(4) i { background: #7A5CD6; }
+
+/* ---- сцена 2: рейтинг ---- */
+.rk__head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: clamp(10px, 3cqw, 14px); }
+.rk__title { font-family: var(--font-head); font-size: clamp(12.5px, 3.2cqw, 14px); font-weight: 600; color: #111; }
+.rk__unit { font-family: 'JetBrains Mono', monospace; font-size: clamp(10px, 2.5cqw, 11px); color: #8B8C9A; }
+
+.rk__list { display: flex; flex-direction: column; gap: clamp(6px, 1.8cqw, 9px); }
+.rk__row {
+  position: relative;
+  display: grid;
+  grid-template-columns: clamp(18px, 4.8cqw, 21px) clamp(58px, 17cqw, 78px) minmax(0, 1fr) auto;
+  align-items: center; gap: clamp(7px, 2cqw, 10px);
+  height: clamp(22px, 6cqw, 27px);
+}
+.rk__rank {
+  display: grid; place-items: center;
+  width: clamp(18px, 4.8cqw, 21px); aspect-ratio: 1;
+  border-radius: 50%;
+  background: #F3EBE0; color: var(--ink-muted);
+  font-family: var(--font-head); font-size: clamp(9.5px, 2.3cqw, 10.5px); font-weight: 600;
+  transition: background-color 0.4s, color 0.4s;
+}
+.rk__name {
+  font-family: var(--font-head); font-size: clamp(10.5px, 2.6cqw, 11.5px); font-weight: 500;
+  color: #2B201B; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.rk__track { height: clamp(7px, 2cqw, 9px); border-radius: 999px; background: #F3EBE0; overflow: hidden; }
+.rk__bar { display: block; height: 100%; border-radius: 999px; background: #D9CDBE; transform-origin: left; transition: background-color 0.4s; }
+.rk__hrs {
+  min-width: 2.6em; text-align: right;
+  font-family: 'JetBrains Mono', monospace; font-size: clamp(10px, 2.5cqw, 11px); color: #8B8C9A;
+  transition: color 0.4s;
+}
+.rk__row.is-top .rk__rank { background: var(--accent); color: #fff; }
+.rk__row.is-top .rk__name { font-weight: 700; }
+.rk__row.is-top .rk__bar { background: var(--accent); }
+.rk__row.is-top .rk__hrs { color: var(--accent); font-weight: 500; }
+
+/* ---- сцена 3: план ---- */
+.pl__head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: clamp(10px, 3cqw, 14px); }
+.pl__title { font-family: var(--font-head); font-size: clamp(12.5px, 3.2cqw, 14px); font-weight: 600; color: #111; }
+.pl__sub { font-family: var(--font-body); font-size: clamp(11px, 2.7cqw, 12px); color: var(--ink-muted); }
+
+.pl__list { display: flex; flex-direction: column; gap: clamp(6px, 1.8cqw, 8px); }
+.pl__step {
+  display: grid;
+  grid-template-columns: clamp(20px, 5.4cqw, 23px) minmax(0, 1fr) auto;
+  align-items: center; gap: clamp(8px, 2.4cqw, 11px);
+  padding: clamp(8px, 2.4cqw, 11px) clamp(9px, 2.6cqw, 12px);
+  border-radius: clamp(10px, 3cqw, 13px);
+  background: #F6F1EA;
+  transition: background-color 0.4s, box-shadow 0.4s;
+}
+.pl__step.is-first { background: #FBEDE6; box-shadow: inset 0 0 0 1.5px rgba(184, 92, 56, 0.35); }
+.pl__num {
+  display: grid; place-items: center;
+  width: clamp(20px, 5.4cqw, 23px); aspect-ratio: 1;
+  border-radius: 50%; background: #fff; color: var(--ink-muted);
+  font-family: var(--font-head); font-size: clamp(10px, 2.4cqw, 11px); font-weight: 600;
+  transition: background-color 0.4s, color 0.4s;
+}
+.pl__step.is-first .pl__num { background: var(--accent); color: #fff; }
+.pl__body { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.pl__text { font-family: var(--font-head); font-size: clamp(11px, 2.8cqw, 12.5px); font-weight: 500; color: #111; line-height: 1.3; }
+.pl__meta { display: flex; align-items: center; flex-wrap: wrap; gap: 5px; }
+.pl__tag { padding: 1px 7px; border-radius: 999px; font-family: var(--font-body); font-size: clamp(9px, 2.2cqw, 10px); font-weight: 500; }
+.pl__tag[data-kind="quick"] { background: #E4F4E8; color: #1E7A3E; }
+.pl__tag[data-kind="medium"] { background: #FFF1D6; color: #8A5A0B; }
+.pl__start {
+  padding: 1px 7px; border-radius: 999px;
+  background: var(--accent); color: #fff;
+  font-family: var(--font-head); font-size: clamp(9px, 2.2cqw, 10px); font-weight: 600;
+  opacity: 0;
+}
+.pl__save { font-family: 'JetBrains Mono', monospace; font-size: clamp(10px, 2.5cqw, 11px); color: var(--ink-muted); white-space: nowrap; }
+
+.pl__foot {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 8px;
+  margin-top: clamp(10px, 3cqw, 14px); padding-top: clamp(10px, 3cqw, 13px);
+  border-top: 1px solid var(--line);
+}
+.pl__foot-label { font-family: var(--font-body); font-size: clamp(11px, 2.7cqw, 12px); color: var(--ink-muted); }
+.pl__foot-value {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--font-head); font-size: clamp(17px, 4.8cqw, 20px); font-weight: 800;
+  color: #111; line-height: 1.1;
+}
+.pl__foot-value svg { width: 13px; height: 13px; flex: none; }
+
+/* ==========================================================
+   Блок 2 — Chat With Your Data: три сцены по пунктам списка.
+   1) files — файлы падают в базу знаний и сразу читаются
+   2) cited — вопрос -> ответ с источником (стили .ask выше)
+   3) fresh — файл обновился -> ответ пересчитался на месте
+   ========================================================== */
+@keyframes kb-spin { to { transform: rotate(360deg); } }
+
+/* общий язык карточки: тот же ободок и тень, что у окон в других блоках */
+.kb, .fresh__card {
+  position: relative; z-index: 1;
+  background: var(--white);
+  border-radius: clamp(16px, 4.6cqw, 22px);
+  box-shadow:
+    0 0 0 clamp(3px, 1cqw, 5px) rgba(255, 255, 255, 0.35),
+    0 20px 40px -16px rgba(20, 30, 70, 0.32);
+  padding: clamp(14px, 4cqw, 20px);
+}
+
+.ask__result-source, .fresh__src { min-width: 0; }
+.ask__source-name { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ---- сцена 1: база знаний ---- */
+.kb { width: 82%; }
+.kb__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: clamp(10px, 3cqw, 14px); }
+.kb__title {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--font-head);
+  font-size: clamp(12.5px, 3.2cqw, 14px); font-weight: 600;
+  color: #111;
+}
+.kb__title-icon {
+  display: grid; place-items: center;
+  width: clamp(22px, 6cqw, 26px); aspect-ratio: 1;
+  border-radius: 50%;
+  background: #F3EBE0;
+}
+.kb__title-icon svg { width: 58%; height: 58%; }
+.kb__count {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: clamp(10px, 2.5cqw, 11px);
+  color: #8B8C9A;
+}
+
+.kb__list { display: flex; flex-direction: column; gap: clamp(6px, 1.8cqw, 8px); }
+/* слот под файл: серая подложка остаётся, файл «падает» внутрь */
+.kb__row {
+  display: flex; align-items: center;
+  height: clamp(30px, 8.4cqw, 38px);
+  padding: 0 clamp(8px, 2.4cqw, 11px);
+  border-radius: clamp(8px, 2.4cqw, 11px);
+  background: #F6F1EA;
+}
+.kb__file { display: flex; align-items: center; gap: clamp(7px, 2cqw, 9px); width: 100%; min-width: 0; }
+.kb__ficon {
+  flex: none;
+  display: grid; place-items: center;
+  width: clamp(18px, 4.8cqw, 21px); aspect-ratio: 1;
+  border-radius: 50%;
+}
+.kb__ficon svg { width: 62%; height: 62%; }
+.kb__fname {
+  flex: 1; min-width: 0;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: clamp(9.5px, 2.4cqw, 10.5px);
+  color: #4A4038;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.kb__status { position: relative; flex: none; width: clamp(16px, 4.2cqw, 18px); aspect-ratio: 1; }
+.kb__spin {
+  position: absolute; inset: 1px;
+  border-radius: 50%;
+  border: 2px solid #E4DACD;
+  border-top-color: var(--accent);
+  animation: kb-spin 0.8s linear infinite;
+}
+.kb__check {
+  position: absolute; inset: 0;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  background: #3FA34D;
+  opacity: 0;
+}
+.kb__check svg { width: 64%; height: 64%; }
+
+/* место под бейдж зарезервировано заранее — карточка не прыгает по высоте */
+.kb__foot { display: flex; justify-content: center; height: clamp(24px, 6.4cqw, 28px); margin-top: clamp(10px, 3cqw, 14px); }
+.kb__badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 0 clamp(10px, 3cqw, 13px);
+  border-radius: 999px;
+  background: #E6F4EA; color: #1E7A3E;
+  font-family: var(--font-head);
+  font-size: clamp(10.5px, 2.6cqw, 11.5px); font-weight: 600;
+  opacity: 0;
+}
+.kb__badge svg { width: 11px; height: 11px; flex: none; }
+
+/* ---- сцена 3: свежий ответ ---- */
+.fresh { position: relative; z-index: 1; width: 82%; }
+.fresh__card { width: 100%; }
+
+.fresh__toast {
+  position: absolute; left: 50%; bottom: calc(100% + clamp(10px, 2.8cqw, 14px));
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 7px 13px;
+  background: #1E2A44; color: #fff;
+  border-radius: 999px;
+  white-space: nowrap;
+  font-family: var(--font-head);
+  font-size: clamp(10.5px, 2.6cqw, 11.5px); font-weight: 600;
+  box-shadow: 0 10px 22px -8px rgba(0, 0, 0, 0.4);
+  opacity: 0;
+}
+.fresh__toast svg { width: 13px; height: 13px; flex: none; animation: kb-spin 1s linear infinite; }
+
+.fresh__src { display: flex; align-items: center; gap: 6px; margin-bottom: clamp(10px, 3cqw, 13px); }
+.fresh__sync {
+  margin-left: auto; flex: none;
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: #F3EBE0; color: var(--ink-muted);
+  font-family: var(--font-head);
+  font-size: clamp(9.5px, 2.3cqw, 10.5px); font-weight: 500;
+  white-space: nowrap;
+  transition: background-color 0.3s, color 0.3s;
+}
+.fresh__sync-icon { width: 10px; height: 10px; flex: none; }
+.fresh__sync[data-state="syncing"] { background: #FFF1D6; color: #8A5A0B; }
+.fresh__sync[data-state="syncing"] .fresh__sync-icon { animation: kb-spin 0.9s linear infinite; }
+.fresh__sync[data-state="fresh"] { background: #E4F4E8; color: #1E7A3E; }
+
+.fresh__divider { margin: 0 0 clamp(10px, 3cqw, 13px); border: 0; height: 1px; background: var(--line); }
+.fresh__label {
+  margin: 0 0 2px;
+  font-family: var(--font-body);
+  font-size: clamp(11px, 2.7cqw, 12px);
+  color: var(--ink-muted);
+}
+.fresh__value-row { display: flex; align-items: baseline; gap: 8px; }
+.fresh__value {
+  font-family: var(--font-head);
+  font-size: clamp(24px, 7cqw, 30px); font-weight: 800;
+  line-height: 1.1;
+  color: #111;
+}
+.fresh__old {
+  font-family: var(--font-body);
+  font-size: clamp(12px, 3cqw, 13.5px);
+  color: #B0A99F; text-decoration: line-through;
+  opacity: 0;
+}
+.fresh__updated {
+  margin-left: auto; align-self: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--accent); color: #fff;
+  font-family: var(--font-head);
+  font-size: clamp(9.5px, 2.3cqw, 10.5px); font-weight: 600;
+  opacity: 0;
+}
+.fresh__delta {
+  margin: 4px 0 0;
+  font-family: var(--font-body);
+  font-size: clamp(11px, 2.7cqw, 12px);
+  color: var(--ink-muted);
+}
+
+/* ==========================================================
+   Блок 3 — Business Process Automation: три сцены по пунктам списка.
+   1) workflow — карта процесса: шаги зажигаются по цепочке
+   2) trigger  — три способа запуска, каждый срабатывает сам
+   3) runlog   — журнал запуска: шаги получают отметки по очереди
+   Оболочка карточки общая с блоком 4 (.hm, .rk, .pl).
+   ========================================================== */
+.wf__head, .tg__head, .lg__head {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 8px;
+  margin-bottom: clamp(12px, 3.4cqw, 16px);
+}
+.wf__title, .tg__title, .lg__title { font-family: var(--font-head); font-size: clamp(12.5px, 3.2cqw, 14px); font-weight: 600; color: #111; }
+.wf__sub, .tg__sub { font-family: var(--font-body); font-size: clamp(11px, 2.7cqw, 12px); color: var(--ink-muted); }
+
+/* ---- сцена 1: карта процесса ---- */
+.wf { --n: clamp(32px, 8.6cqw, 40px); }
+.wf__chain { display: flex; align-items: flex-start; }
+.wf__step { flex: none; width: clamp(46px, 13cqw, 60px); display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.wf__node {
+  display: grid; place-items: center;
+  width: var(--n); aspect-ratio: 1; border-radius: 50%;
+  background: #F3EBE0; color: var(--ink-muted);
+  transition: background-color 0.4s, color 0.4s, box-shadow 0.4s;
+}
+.wf__node svg { width: 50%; height: 50%; }
+.wf__label {
+  font-family: var(--font-head); font-size: clamp(9px, 2.2cqw, 10px); font-weight: 500; line-height: 1.25;
+  text-align: center; color: var(--ink-muted); transition: color 0.4s;
+}
+.wf__step.is-on .wf__node { background: var(--accent); color: #fff; box-shadow: 0 0 0 4px rgba(184, 92, 56, 0.18); }
+.wf__step.is-on .wf__label { color: #111; }
+.wf__link { flex: 1; min-width: 8px; height: 2px; margin-top: calc(var(--n) / 2 - 1px); border-radius: 999px; background: #ECE6E0; overflow: hidden; }
+.wf__link i { display: block; width: 100%; height: 100%; background: var(--accent); transform-origin: left; transform: scaleX(0); }
+.wf__tools { margin-top: clamp(14px, 4cqw, 18px); padding-top: clamp(10px, 3cqw, 13px); border-top: 1px solid var(--line); }
+.wf__tools-label { font-family: var(--font-body); font-size: clamp(11px, 2.7cqw, 12px); color: var(--ink-muted); }
+.wf__tools .hm__chips { margin-top: clamp(8px, 2.4cqw, 11px); }
+
+/* ---- сцена 2: триггеры ---- */
+.tg__list { display: flex; flex-direction: column; gap: clamp(6px, 1.8cqw, 8px); }
+.tg__row {
+  display: grid;
+  grid-template-columns: clamp(26px, 7cqw, 32px) minmax(0, 1fr) auto;
+  align-items: center; gap: clamp(8px, 2.4cqw, 11px);
+  padding: clamp(8px, 2.4cqw, 11px) clamp(9px, 2.6cqw, 12px);
+  border-radius: clamp(10px, 3cqw, 13px);
+  background: #F6F1EA;
+  transition: background-color 0.4s, box-shadow 0.4s;
+}
+.tg__row.is-run { background: #FBEDE6; box-shadow: inset 0 0 0 1.5px rgba(184, 92, 56, 0.35); }
+.tg__icon {
+  display: grid; place-items: center;
+  width: clamp(26px, 7cqw, 32px); aspect-ratio: 1; border-radius: 50%;
+  background: #fff; color: var(--ink-muted);
+  transition: background-color 0.4s, color 0.4s;
+}
+.tg__icon svg { width: 56%; height: 56%; }
+.tg__row.is-run .tg__icon { background: var(--accent); color: #fff; }
+.tg__body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.tg__text { font-family: var(--font-head); font-size: clamp(11px, 2.8cqw, 12.5px); font-weight: 500; color: #111; line-height: 1.3; }
+.tg__meta { font-family: var(--font-body); font-size: clamp(9.5px, 2.3cqw, 10.5px); color: var(--ink-muted); }
+.tg__pill {
+  display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+  min-width: 5.6em; padding: 2px 8px; border-radius: 999px;
+  background: #fff; color: var(--ink-muted);
+  font-family: var(--font-body); font-size: clamp(9px, 2.2cqw, 10px); font-weight: 500; white-space: nowrap;
+  transition: background-color 0.4s, color 0.4s;
+}
+.tg__pill::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: 0.55; }
+.tg__pill[data-state="run"] { background: var(--accent); color: #fff; }
+.tg__pill[data-state="run"]::before { animation: tg-pulse 0.8s ease-in-out infinite; }
+.tg__pill[data-state="done"] { background: #E4F4E8; color: #1E7A3E; }
+.tg__pill[data-state="done"]::before { opacity: 1; }
+@keyframes tg-pulse { 50% { opacity: 0.15; } }
+
+/* ---- сцена 3: журнал запуска ---- */
+.lg__pill {
+  padding: 2px 9px; border-radius: 999px;
+  background: #FFF1D6; color: #8A5A0B;
+  font-family: var(--font-head); font-size: clamp(9px, 2.2cqw, 10px); font-weight: 600;
+  transition: background-color 0.4s, color 0.4s;
+}
+.lg__pill[data-state="done"] { background: #E4F4E8; color: #1E7A3E; }
+.lg__list { display: flex; flex-direction: column; gap: clamp(5px, 1.5cqw, 7px); }
+.lg__row {
+  display: grid;
+  grid-template-columns: auto clamp(16px, 4.2cqw, 18px) minmax(0, 1fr);
+  align-items: center; gap: clamp(8px, 2.4cqw, 11px);
+  height: clamp(26px, 7.2cqw, 32px);
+  padding: 0 clamp(9px, 2.6cqw, 12px);
+  border-radius: clamp(8px, 2.4cqw, 11px);
+  background: #F6F1EA;
+}
+.lg__time { font-family: 'JetBrains Mono', monospace; font-size: clamp(9.5px, 2.4cqw, 10.5px); color: #8B8C9A; }
+.lg__st { position: relative; width: clamp(16px, 4.2cqw, 18px); aspect-ratio: 1; }
+.lg__spin {
+  position: absolute; inset: 1px; border-radius: 50%;
+  border: 2px solid #E6D9CC; border-top-color: var(--accent);
+  animation: kb-spin 0.8s linear infinite;
+  transition: opacity 0.25s;
+}
+.lg__ok {
+  position: absolute; inset: 0; display: grid; place-items: center;
+  border-radius: 50%; background: #1E9E5A; color: #fff;
+  opacity: 0; transform: scale(0.5);
+  transition: opacity 0.25s, transform 0.35s var(--ease-out);
+}
+.lg__ok svg { width: 62%; height: 62%; }
+.lg__row.is-done .lg__spin { opacity: 0; }
+.lg__row.is-done .lg__ok { opacity: 1; transform: none; }
+.lg__text { font-family: var(--font-head); font-size: clamp(11px, 2.8cqw, 12.5px); font-weight: 500; color: #111; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ==========================================================
+   Блок 2 — Chat With Your Data: строка поиска печатает вопрос,
+   после отправки снизу выезжает карточка с ответом и источником.
+   ========================================================== */
+.ask {
+  position: relative;
+  width: 84%;
+  display: flex; justify-content: center;
+}
+
+.ask__bar {
+  position: relative;
+  z-index: 2; /* строка поверх нижнего края карточки — тот самый эффект «единого элемента» */
+  width: 100%;
+  display: flex; align-items: center;
+  gap: clamp(10px, 3cqw, 14px);
+  padding: clamp(12px, 3.6cqw, 18px) clamp(16px, 4.4cqw, 22px);
+  background: var(--white);
+  border-radius: 999px;
+  box-shadow:
+    0 0 0 clamp(4px, 1.4cqw, 7px) rgba(255, 255, 255, 0.35),
+    0 20px 40px -16px rgba(20, 30, 70, 0.35);
+}
+.ask__icon { flex: none; display: grid; place-items: center; }
+.ask__icon svg { width: clamp(18px, 5cqw, 21px); height: clamp(18px, 5cqw, 21px); }
+
+.ask__input {
+  flex: 1; min-width: 0;
+  font-family: var(--font-head);
+  font-size: clamp(13px, 3.4cqw, 15px); font-weight: 500;
+  color: #111;
+  white-space: nowrap; overflow: hidden;
+}
+.ask__cursor {
+  display: inline-block;
+  width: 2px; height: 0.9em;
+  margin-left: 2px;
+  background: #2B201B;
+  vertical-align: -0.15em;
+  animation: ask-blink 0.9s step-end infinite;
+}
+@keyframes ask-blink { 50% { opacity: 0; } }
+
+.ask__send { flex: none; display: grid; place-items: center; color: #2B201B; }
+.ask__send svg { width: clamp(16px, 4.4cqw, 19px); height: clamp(16px, 4.4cqw, 19px); }
+
+/* карточка-результат: растёт СВЕРХУ строки, не сдвигая её саму —
+   позиционируется абсолютно относительно .ask, «прибита» к верху бара */
+.ask__result {
+  position: absolute;
+  z-index: 1; /* под строкой — строка перекрывает нижний край карточки */
+  left: 50%;
+  /* нижний край карточки заходит ЗА строку (не над ней с зазором) —
+     здесь и рождается ощущение единого элемента с референса */
+  bottom: calc(100% - clamp(16px, 4.4cqw, 22px));
+  /* центрирование задаём через GSAP (xPercent), а не здесь: скоро сюда же
+     ляжет transform от scaleY/y, и статичный translateX(-50%) в CSS
+     потерялся бы при первом же твине — тот же нюанс, что был с h1 в hero */
+  transform-origin: bottom center; /* «вырастает» из строки, а не парит сама по себе */
+  width: 88%;
+  padding: clamp(14px, 4cqw, 20px) clamp(16px, 4.4cqw, 22px);
+  padding-bottom: clamp(28px, 7cqw, 36px); /* запас снизу — под строку, которая перекроет край */
+  background: var(--white);
+  border-radius: clamp(14px, 4cqw, 20px);
+  box-shadow:
+    0 0 0 clamp(3px, 1cqw, 5px) rgba(255, 255, 255, 0.35),
+    0 16px 32px -14px rgba(20, 30, 70, 0.32);
+}
+
+.ask__result-head { display: flex; align-items: center; gap: 6px; margin-bottom: clamp(6px, 2cqw, 9px); }
+.ask__result-title {
+  font-family: var(--font-head);
+  font-size: clamp(13px, 3.4cqw, 15px); font-weight: 700;
+  color: #111;
+}
+.ask__result-spark { width: clamp(11px, 2.8cqw, 13px); height: clamp(11px, 2.8cqw, 13px); flex: none; }
+
+/* источник — цветная иконка формата файла + имя, вместо голого текста */
+.ask__result-source {
+  display: flex; align-items: center; gap: 6px;
+  margin-bottom: clamp(8px, 2.4cqw, 11px);
+}
+.ask__source-icon {
+  flex: none;
+  display: grid; place-items: center;
+  width: clamp(16px, 4.2cqw, 18px); aspect-ratio: 1;
+  border-radius: 50%;
+}
+.ask__source-icon svg { width: 62%; height: 62%; }
+.ask__source-name {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: clamp(9.5px, 2.3cqw, 10.5px);
+  color: #8B8C9A;
+}
+
+.ask__answer {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: clamp(12px, 3cqw, 13.5px); line-height: 1.5;
+  color: #2B201B;
+}
+
+/* серые полоски-скелетоны под текстом — намёк, что ответ не единственная
+   строка, а часть более длинного документа/переписки */
+.ask__skeleton { margin-top: clamp(8px, 2.4cqw, 11px); display: flex; flex-direction: column; gap: 6px; }
+.ask__skeleton span { height: 7px; border-radius: 4px; background: #ECE6E0; }
+.ask__skeleton span:first-child { width: 92%; }
+.ask__skeleton span:last-child { width: 62%; }
+
+/* ---------------- responsive ---------------- */
+@media (max-width: 900px) {
+  .svc-block { grid-template-columns: 1fr; }
+  .svc-stage { max-width: 520px; width: 100%; margin-inline: auto; min-height: 420px; }
+}
